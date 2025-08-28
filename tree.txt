@@ -1,24 +1,43 @@
 rag-multi-system/
 │
-├── data/                        # Input documents
-├── Vector_DB/                  # Vector DBs (e.g., FAISS)
+├── data/                         # Input documents
+├── Vector_DB/                    # Vector DBs (e.g., FAISS)
 │
 ├── systems/
-│   ├── naive_rag.py             # Simple RAG
-│   ├── advanced_rag.py          # Re-ranking, better prompts
-│   └── modular_rag.py           # Fully modular RAG
+│   ├── naive_rag.py              # Simple RAG
+│   ├── advanced_rag.py           # Re-ranking, better prompts
+│   └── modular_rag.py            # Fully modular RAG
 │
 ├── components/
 │   ├── document_loader.py
 │   ├── chunker.py
 │   ├── embedder.py
 │   ├── retriever.py
-│   ├── reranker.py              # Used only in advanced/modular
-│   ├── prompt_builder.py            # Used only in advanced/modular
+│   ├── reranker.py               # Used only in advanced/modular
+│   ├── prompt_builder.py         # Used only in advanced/modular
 │   └── Vector_db.py
-|   
 │
-├── ollama_interface.py          # Interface with Ollama LLM
+├── Rag_Hub_App/                  # Django app folder
+│   ├── migrations/
+│   ├── templates/
+│   ├── __pycache__/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   └── __init__.py
+│
+├── rag_types_project/            # Django project folder
+│   ├── __pycache__/
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── __init__.py
+│
+├── ollama_interface.py           # Interface with Ollama LLM
 ├── main.py                      # CLI or UI
 ├── requirements.txt
 └── README.md

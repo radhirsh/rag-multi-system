@@ -6,7 +6,7 @@ ollama_model=OllamaEmbeddings(base_url= "http://localhost:11434",model= "mxbai-e
 
 
 
-def retriver(embeddings,chunks,user_query,top_k):
+def Retriver(embeddings,chunks,user_query,top_k):
     dimension=len(embeddings[0])
     index=faiss.IndexFlatL2(dimension)
     np_embeddings=np.array(embeddings).astype('float32')

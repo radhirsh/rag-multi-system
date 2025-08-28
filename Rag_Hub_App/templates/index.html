@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAG Hub - Multi-System Retriever | GenAI Portfolio</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- FontAwesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+  <style>
+    /* Background gradient */
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Navbar styling */
+    .navbar-brand {
+      font-weight: 900;
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+    }
+
+    /* File input cursor */
+    .file-input-label {
+      cursor: pointer;
+    }
+
+    /* Result box */
+    .result-box {
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      min-height: 150px;
+      font-size: 1.1rem;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 15px;
+      font-size: 0.9rem;
+      text-align: center;
+      background-color: rgba(0,0,0,0.3);
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      color: #ddd;
+      z-index: 999;
+    }
+
+    /* Chatbot floating bubble */
+    #chatbot {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 320px;
+      max-width: 90vw;
+      background: rgba(0, 0, 0, 0.85);
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      z-index: 1050;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeInUp 1s ease forwards;
+      font-size: 0.95rem;
+    }
+
+    /* Chat header */
+    #chatbot-header {
+      background: #764ba2;
+      padding: 10px 15px;
+      color: white;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    #chatbot-header i {
+      cursor: pointer;
+    }
+
+    /* Chat messages container */
+    #chatbot-messages {
+      padding: 15px;
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: 280px;
+    }
+
+    /* Single message styling */
+    .chatbot-message {
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .chatbot-message.bot {
+      color: #a8d0e6;
+      font-style: italic;
+    }
+
+    /* Typing effect */
+    .typing {
+      border-right: 3px solid #a8d0e6;
+      animation: blinkCaret 1s step-end infinite;
+      white-space: nowrap;
+      overflow: hidden;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    /* Animations */
+    @keyframes blinkCaret {
+      0%, 100% { border-color: transparent; }
+      50% { border-color: #a8d0e6; }
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive form */
+    form .form-label {
+      font-weight: 600;
+    }
+
+    /* Button hover */
+    button.btn-primary:hover {
+      background-color: #5a3cae;
+      border-color: #5a3cae;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4">
+    <div class="container">
+      <a class="navbar-brand" href="#"><i class="fas fa-brain"></i> RAG Hub</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarMenu"
+        aria-controls="navbarMenu"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarMenu">
+        <ul class="navbar-nav ms-auto gap-3">
+          <li class="nav-item">
+            <a class="nav-link active" href="#"><i class="fas fa-home"></i> Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-info-circle"></i> About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-envelope"></i> Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main container -->
+  <div class="container">
+    <div class="text-center mb-5">
+      <h1 class="fw-bold">Multi-System RAG Retriever</h1>
+      <p class="lead text-light">
+        Upload your document, select the RAG system, ask your query and get
+        instant answers!
+      </p>
+    </div>
+
+    <!-- File upload + Select RAG system + Query input -->
+    <form
+      id="ragForm"
+      class="row g-3 needs-validation"
+      novalidate
+      autocomplete="off"
+    >
+      <!-- Document Upload -->
+      <div class="col-md-6">
+        <label for="inputFile" class="form-label fw-semibold"
+          >Upload Document</label
+        >
+        <input
+          class="form-control form-control-lg"
+          type="file"
+          id="inputFile"
+          accept=".pdf,.txt,.docx,.csv"
+          required
+        />
+        <div class="invalid-feedback">
+          Please upload a supported document file.
+        </div>
+      </div>
+
+      <!-- RAG system select -->
+      <div class="col-md-6">
+        <label for="ragSystem" class="form-label fw-semibold"
+          >Select RAG System</label
+        >
+        <select
+          id="ragSystem"
+          class="form-select form-select-lg"
+          required
+          aria-label="Select Retrieval Augmented Generation system"
+        >
+          <option selected disabled value=""
+            >Choose your RAG system...</option
+          >
+          <option value="naive"><i class="fas fa-rocket"> Naive RAG </i></option>
+          <option value="advanced"><i class="fas fa-cogs"></i> Advanced RAG</option>
+          <option value="modular"><i class="fas fa-puzzle-piece"></i> Modular RAG</option>
+        </select>
+        <div class="invalid-feedback">Please select a RAG system.</div>
+      </div>
+
+      <!-- Query input -->
+      <div class="col-12">
+        <label for="userQuery" class="form-label fw-semibold"
+          >Enter Your Query</label
+        >
+        <textarea
+          id="userQuery"
+          class="form-control form-control-lg"
+          rows="3"
+          placeholder="Type your question here..."
+          required
+          aria-describedby="queryHelp"
+        ></textarea>
+        <div class="invalid-feedback">Query cannot be empty.</div>
+        <div id="queryHelp" class="form-text text-light">
+          You can ask anything related to your uploaded document(s).
+        </div>
+      </div>
+
+      <!-- Submit button -->
+      <div class="col-12 text-center">
+        <button type="submit" class="btn btn-primary btn-lg px-5">
+          <i class="fas fa-paper-plane"></i> Ask RAG
+        </button>
+      </div>
+    </form>
+
+    <!-- Result -->
+    <div class="mt-5">
+      <h3 class="text-center">Answer</h3>
+      <div
+        id="result"
+        class="result-box"
+        role="region"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div>
+      © 2025 RAG Hub | Made with <i class="fas fa-heart text-danger"></i> by You
+      | <a href="#" class="text-decoration-none text-light" data-bs-toggle="modal" data-bs-target="#aboutModal">About Project</a>
+    </div>
+  </footer>
+
+  <!-- Chatbot Widget -->
+  <div id="chatbot" aria-label="Project explanation chatbot" role="dialog" aria-modal="true">
+    <div id="chatbot-header">
+      <span><i class="fas fa-robot"></i> RAG AI Assistant</span>
+      <i id="chatbot-close" class="fas fa-times" aria-label="Close chatbot" role="button" tabindex="0"></i>
+    </div>
+    <div id="chatbot-messages" aria-live="polite" aria-relevant="additions"></div>
+  </div>
+
+  <!-- About Modal -->
+  <div
+    class="modal fade"
+    id="aboutModal"
+    tabindex="-1"
+    aria-labelledby="aboutModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="aboutModalLabel"><i class="fas fa-info-circle"></i> About This Project</h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Welcome to the Multi-System Retrieval-Augmented Generation (RAG) Hub — an
+            innovative platform that showcases advanced GenAI skills. This
+            application allows users to upload documents, select different RAG
+            systems (Naive, Advanced, Modular), and query those documents with
+            natural language.
+          </p>
+          <p>
+            The RAG Hub uses vector search techniques, prompt engineering, and
+            AI-driven re-ranking to provide accurate and context-aware answers
+            based on your data. This project highlights expertise in Python,
+            Django/Flask, vector databases (e.g., FAISS), and integration with
+            Large Language Models.
+          </p>
+          <p>
+            This interface is designed to be interactive, accessible, and visually
+            impressive using Bootstrap and FontAwesome icons — demonstrating
+            polished frontend and backend integration skills essential for
+            real-world AI-driven applications.
+          </p>
+          <p>
+            Thanks for checking out this project! Feel free to reach out to discuss
+            opportunities or collaborate.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Custom JS -->
+  <script>
+    (() => {
+      "use strict";
+
+      // Bootstrap form validation
+      const form = document.getElementById("ragForm");
+      const resultBox = document.getElementById("result");
+
+      // Simulate backend AI answer for demo
+      const fakeAnswer = (ragSystem, query) => {
+        const responses = {
+          naive: "Naive RAG system uses simple retrieval to fetch relevant documents and generate answers.",
+          advanced: "Advanced RAG integrates re-ranking and prompt enhancements for more precise answers.",
+          modular: "Modular RAG is a fully customizable system allowing flexible integration of components.",
+        };
+        return (
+          `<p><strong>Selected RAG system:</strong> ${ragSystem}</p>` +
+          `<p><strong>Your query:</strong> ${query}</p><hr />` +
+          `<p><i class="fas fa-robot"></i> <span class="text-warning fw-bold">AI Answer:</span> ${
+            responses[ragSystem] || "Unknown system."
+          }</p>` +
+          `<p>Implement real backend AI to replace this demo answer.</p>`
+        );
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!form.checkValidity()) {
+          form.classList.add("was-validated");
+          return;
+        }
+
+        resultBox.innerHTML = `
+          <div class="d-flex justify-content-center align-items-center" style="height: 150px;">
+            <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+            <span class="ms-3">Processing your query...</span>
+          </div>`;
+
+        // Simulate network latency with timeout
+        setTimeout(() => {
+          const ragSystem = document.getElementById("ragSystem").value;
+          const query = document.getElementById("userQuery").value.trim();
+
+          resultBox.innerHTML = fakeAnswer(ragSystem, query);
+        }, 2500);
+      });
+
+      // Chatbot logic
+      const chatbot = document.getElementById("chatbot");
+      const chatbotMessages = document.getElementById("chatbot-messages");
+      const chatbotCloseBtn = document.getElementById("chatbot-close");
+
+      // Chatbot script lines for typing effect
+      const chatbotLines = [
+        "👋 Hello! I’m your AI assistant for the RAG Hub project.",
+        "This app showcases advanced Generative AI skills with multiple RAG systems.",
+        "You can upload documents, select retrieval systems, and ask questions naturally.",
+        "Behind the scenes, it uses vector search, prompt engineering, and AI re-ranking.",
+        "Feel free to explore, ask queries, and impress your interviewers with this demo!",
+      ];
+
+      // Typing effect function
+      function typeLine(text, element, delay = 40) {
+        return new Promise((resolve) => {
+          let i = 0;
+          element.textContent = "";
+          const interval = setInterval(() => {
+            element.textContent += text.charAt(i);
+            i++;
+            if (i === text.length) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, delay);
+        });
+      }
+
+      async function playChatbot() {
+        for (const line of chatbotLines) {
+          const messageEl = document.createElement("div");
+          messageEl.className = "chatbot-message bot typing";
+          chatbotMessages.appendChild(messageEl);
+          await typeLine(line, messageEl);
+          messageEl.classList.remove("typing");
+          chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+          await new Promise((r) => setTimeout(r, 1500));
+        }
+      }
+
+      // Close chatbot button
+      chatbotCloseBtn.addEventListener("click", () => {
+        chatbot.style.display = "none";
+      });
+
+      chatbotCloseBtn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          chatbot.style.display = "none";
+        }
+      });
+
+      // Start chatbot & auto-hide after 30s
+      playChatbot();
+
+      setTimeout(() => {
+        chatbot.style.transition = "opacity 1s ease";
+        chatbot.style.opacity = "0";
+        setTimeout(() => {
+          chatbot.style.display = "none";
+        }, 1000);
+      }, 10000);
+
+      // Accessibility: Focus trap or similar can be added for production
+    })();
+  </script>
+</body>
+</html>

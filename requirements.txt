@@ -1,1 +1,4 @@
-.
+faiss-cpu
+numpy
+scikit-learn
+sentence-transformers
